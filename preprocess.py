@@ -35,7 +35,11 @@ def normal(df, cols):
     """ Convert to standard normal """
     df = df._get_numeric_data()
     for col in cols:
-        df[col] = (df[col] - df[col].mean()) / (df[col].max() - df[col].min())
+        diff = df[col].max() - df[col].min()
+        if diff:
+            df[col] = (df[col] - df[col].mean()) / (df[col].max() - df[col].min())
+        else:
+            df[col] = 0
     return df
 
 def process_data(data, write_path):
@@ -59,22 +63,26 @@ def process_data(data, write_path):
         data[p_month[i]] = data.PromoInterval.apply(lambda x: 1 if mon[i] in x.split(",") else 0)
 
     data.drop(['PromoInterval'], axis=1, inplace=True)
-
-    """ Remove nans """
-    data.fillna(0, inplace=True)
     
     """ Split date into parts """
     data['Year'] = data.Date.apply(lambda x: x.year)
     data['Month'] = data.Date.apply(lambda x: x.month)
     data['Woy'] = data.Date.apply(lambda x: x.weekofyear)
 
-
+    """ Remove nans """
+    data.fillna(0, inplace=True)
+    
     """ Filter data to dates where shop is open and non zero sales """
-    data = data[data['Sales']!='0']
+    if 'Sales' in data:
+        data = data[data['Sales']!='0'] 
     data = data[data['Open']=='1']
 
     """ Remove date and stateholiday """
-    data.drop(['Date', 'StateHoliday', 'Customers'], axis=1, inplace=True)
+    if 'Id' in data:
+        data.drop(['Id'], axis=1, inplace=True)
+    if 'Customers' in data:
+        data.drop(['Customers'], axis=1, inplace=True)    
+    data.drop(['Date', 'StateHoliday'], axis=1, inplace=True)
 
     """ Encode categorical data """
     data = encode_onehot(data, ['StoreType', 'Assortment'])
@@ -96,6 +104,7 @@ def main():
     training_file = 'data/train.csv'
     test_file = 'data/test.csv'
     training_vector = 'data/training_vector.csv'
+    test_vector = 'data/test_vector.csv'
     stores = pd.read_csv(infile, dtype=object)
 
     training_data = pd.read_csv(training_file, parse_dates = ['Date'], dtype=object)
@@ -105,6 +114,7 @@ def main():
     test_data = merge(test_data, stores)
 
     process_data(training_data, training_vector)
+    process_data(test_data, test_vector)
 
 if __name__ == "__main__":
     main()
