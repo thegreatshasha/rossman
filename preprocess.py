@@ -42,7 +42,7 @@ def normal(df, cols):
             df[col] = 0
     return df
 
-def process_data(data, write_path):
+def process_data(data, write_path, remove_zero_sales=True):
     """ Cleanup data """
     
     """ Create vector of promo intervals """
@@ -72,14 +72,7 @@ def process_data(data, write_path):
     """ Remove nans """
     data.fillna(0, inplace=True)
     
-    """ Filter data to dates where shop is open and non zero sales """
-    if 'Sales' in data:
-        data = data[data['Sales']!='0'] 
-    data = data[data['Open']=='1']
-
     """ Remove date and stateholiday """
-    if 'Id' in data:
-        data.drop(['Id'], axis=1, inplace=True)
     if 'Customers' in data:
         data.drop(['Customers'], axis=1, inplace=True)    
     data.drop(['Date', 'StateHoliday'], axis=1, inplace=True)
@@ -90,6 +83,12 @@ def process_data(data, write_path):
     """ Normalize everything"""
     data = data.convert_objects(convert_numeric=True)
     data = normal(data, ['Store', 'DayOfWeek', 'Promo2SinceYear', 'CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear','Year', 'Month', 'Woy'])
+
+    """ Filter data to dates where shop is open and non zero sales """
+    if remove_zero_sales:
+        if 'Sales' in data:
+            data = data[data['Sales']!=0] 
+        data = data[data['Open']==1]
 
     """ Write the data """
     if write_path:
@@ -114,7 +113,7 @@ def main():
     test_data = merge(test_data, stores)
 
     process_data(training_data, training_vector)
-    process_data(test_data, test_vector)
+    process_data(test_data, test_vector, remove_zero_sales=False)
 
 if __name__ == "__main__":
     main()
