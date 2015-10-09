@@ -82,7 +82,7 @@ def process_data(data, write_path, remove_zero_sales=True):
 
     """ Normalize everything"""
     data = data.convert_objects(convert_numeric=True)
-    data = normal(data, ['Store', 'DayOfWeek', 'Promo2SinceYear', 'CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear','Year', 'Month', 'Woy'])
+    #data = normal(data, ['Store', 'DayOfWeek', 'Promo2SinceYear', 'CompetitionDistance', 'CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear','Year', 'Month', 'Woy'])
 
     """ Filter data to dates where shop is open and non zero sales """
     if remove_zero_sales:
