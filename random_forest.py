@@ -20,7 +20,7 @@ def submit(model, X):
     output = model.predict(x)
     
     result = pd.DataFrame(X.Id).join(pd.DataFrame(output,columns=['Sales']))
-    result.sort('Id').to_csv('submission.csv')
+    result.sort('Id').to_csv('submission.csv', index=False)
 
 def main():
     training_input_file = 'data/training_vector.csv'
@@ -29,12 +29,13 @@ def main():
     data = pd.read_csv(training_input_file)
     submit_data = pd.read_csv(submit_input_file)
 
-    training_data, test_data = train_test_split(data, test_size=0.5)
+    training_data, test_data = train_test_split(data, test_size=0.1)
     
     model = train(training_data.drop(['Sales'], axis=1), training_data['Sales'])
     mean_score, rmspe_score = test(model, training_data.drop(['Sales'], axis=1), training_data['Sales'])
 
     print "Mean Score: %f, Rmspe Score: %f" % (mean_score, rmspe_score)
+    submit(model, submit_data)
 
 if __name__ == "__main__":
     main()
